@@ -19,6 +19,7 @@ package com.graphhopper.util;
 
 import org.junit.jupiter.api.Test;
 
+import static com.graphhopper.util.GHUtility.getCommonNode;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -81,8 +82,17 @@ public class AngleCalcTest {
     }
 
     @Test
+    // ajout de test unitaire pour tester toutes les conditions
     public void testAzimuthCompassPoint() {
-        assertEquals("S", AC.azimuth2compassPoint(199));
+        assertEquals("N", AC.azimuth2compassPoint(10));
+        assertEquals("NE", AC.azimuth2compassPoint(25));
+        assertEquals("E", AC.azimuth2compassPoint(70));
+        assertEquals("SE", AC.azimuth2compassPoint(150));
+        assertEquals("S", AC.azimuth2compassPoint(160));
+        assertEquals("SW", AC.azimuth2compassPoint(205));
+        assertEquals("W", AC.azimuth2compassPoint(250));
+        assertEquals("NW", AC.azimuth2compassPoint(300));
+        assertEquals("N", AC.azimuth2compassPoint(350));
     }
 
     @Test
@@ -100,6 +110,7 @@ public class AngleCalcTest {
     }
 
     @Test
+    //ajout 2 test pour couvrir toutes les branches de test 1 if et 1 exception handler
     public void testConvertAzimuth2xAxisAngle() {
         assertEquals(Math.PI / 2, AC.convertAzimuth2xaxisAngle(0), 1E-6);
         assertEquals(Math.PI / 2, Math.abs(AC.convertAzimuth2xaxisAngle(360)), 1E-6);
@@ -108,6 +119,13 @@ public class AngleCalcTest {
         assertEquals(Math.PI, Math.abs(AC.convertAzimuth2xaxisAngle(270)), 1E-6);
         assertEquals(-3 * Math.PI / 4, AC.convertAzimuth2xaxisAngle(225), 1E-6);
         assertEquals(3 * Math.PI / 4, AC.convertAzimuth2xaxisAngle(315), 1E-6);
+        assertEquals(Math.PI / 4, AC.convertAzimuth2xaxisAngle(45), 1E-6);
+        try {
+            AC.convertAzimuth2xaxisAngle(400);
+            fail("expected exception was not occured.");
+        } catch(IllegalArgumentException e) {
+            System.out.println("Excepted exception is handled");
+        }
     }
 
     @Test

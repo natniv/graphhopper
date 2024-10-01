@@ -17,6 +17,7 @@
  */
 package com.graphhopper.util;
 
+
 import com.graphhopper.coll.GHIntLongHashMap;
 import com.graphhopper.routing.ev.BooleanEncodedValue;
 import com.graphhopper.routing.ev.DecimalEncodedValue;
@@ -27,8 +28,11 @@ import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.storage.BaseGraph;
 import com.graphhopper.storage.Graph;
 import com.graphhopper.storage.NodeAccess;
+import com.graphhopper.storage.*;
+import com.graphhopper.routing.ch.CHRoutingAlgorithmFactory;
 import org.junit.jupiter.api.Test;
 
+import static com.graphhopper.util.GHUtility.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -58,19 +62,126 @@ public class GHUtilityTest {
 
         // instead of assertEquals(-1, map1.get(3)); with hppc we have to check before:
         assertTrue(map1.containsKey(0));
-
-        // trove4j behaviour was to return -1 if non existing:
-//        TIntLongHashMap map2 = new TIntLongHashMap(100, 0.7f, -1, -1);
-//        assertFalse(map2.containsKey(0));
-//        assertFalse(map2.containsValue(0));
-//        map2.add(0, 3);
-//        map2.add(1, 0);
-//        map2.add(2, 1);
-//        assertTrue(map2.containsKey(0));
-//        assertTrue(map2.containsValue(0));
-//        assertEquals(3, map2.get(0));
-//        assertEquals(0, map2.get(1));
-//        assertEquals(1, map2.get(2));
-//        assertEquals(-1, map2.get(3));
     }
-}
+
+    //N - 1
+    // retourne le node adjacent a un autre node qui partage la meme arete
+    public void getNodeAdjTest(){
+        Directory dir = new RAMDirectory();
+        BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
+        graph.create(500);  // Initialisation avec une taille de stockage de 500
+
+        // Ajouter des arêtes avec des distances
+        graph.edge(1, 2).setDistance(2);
+        graph.edge(1, 3).setDistance(40);
+        EdgeIteratorState edgeState = graph.edge(2, 3).setDistance(10);
+
+        int edgeId = edgeState.getEdge();
+        int result = getAdjNode(graph, edgeId, 2);
+        assertEquals(3,result);
+
+    }
+
+    //N - 2 - inutile a enlever
+    // voir si 2 aretes partagent un noeud
+    public void getCommonNodeTest(){
+        Directory dir = new RAMDirectory();
+        BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
+        graph.create(500);  // Initialisation avec une taille de stockage de 500
+
+        // Ajouter des arêtes avec des distances
+        graph.edge(1, 2).setDistance(2);
+        EdgeIteratorState edgeState2 = graph.edge(1, 3).setDistance(40);
+        EdgeIteratorState edgeState = graph.edge(2, 3).setDistance(10);
+
+        int edgeId = edgeState.getEdge();
+        int edgeId2 = edgeState2.getEdge();
+        int result = getCommonNode(graph, edgeId, edgeId2);
+        assertEquals(3,result);
+    }
+
+    //N - 3 - inutile a enlever
+    public void testGetCommonNodeThrowsIllegalArgumentException() {
+        Directory dir = new RAMDirectory();
+        BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
+        graph.create(500);  // Initialisation avec une taille de stockage de 500
+
+        // Ajouter des arêtes avec des distances
+        graph.edge(1, 2).setDistance(2);
+        EdgeIteratorState edgeState2 = graph.edge(1, 3).setDistance(40);
+        EdgeIteratorState edgeState = graph.edge(2, 3).setDistance(10);
+
+        int edgeId = edgeState.getEdge();
+        int edgeId2 = edgeState2.getEdge();
+
+        try {
+            int result = getCommonNode(graph, edgeId, edgeId);
+            fail("expected exception was not occured.");
+        } catch(IllegalArgumentException e) {
+            //if execution reaches here,
+            //it indicates this exception was occured.
+            //so we need not handle it.
+            System.out.println("Excepted exception is handled");
+        }
+    }
+
+    //N - 4
+    // mentionner linspi : https://stackoverflow.com/questions/156503/how-do-you-assert-that-a-certain-exception-is-thrown-in-junit-tests#:~:text=Using%20ExpectedException%20you%20could%20call%20N
+    public void testExceptionEdgeIterator(){
+            Directory dir = new RAMDirectory();
+            BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
+            graph.create(500);  // Initialisation avec une taille de stockage de 500
+
+            // Ajouter des arêtes avec des distances
+            graph.edge(1, 2).setDistance(2);
+            graph.edge(1, 3).setDistance(40);
+            graph.freeze();
+
+            try {
+                EdgeIteratorState edgeState = graph.edge(2, 3).setDistance(10);
+            } catch (IllegalStateException e) {
+                System.out.println("Excepted exception is handled");
+            }
+
+
+        }
+
+    public void testGetProblems(){
+        Directory dir = new RAMDirectory();
+        BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
+        graph.create(500);  // Initialisation avec une taille de stockage de 500
+
+        try {
+            System.out.println(getProblems(graph));
+        } catch (IllegalStateException e) {
+            System.out.println("Excepted exception is handled");
+        }
+    }
+
+    // non valide et faux
+    /*public void getMinDistTest(){
+
+        //Initialisation d'un graphe pour le contexte de tests.
+        Directory dir = new RAMDirectory();
+        BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
+        graph.create(500);  // Initialisation avec une taille de stockage de 500
+
+        // Ajouter des arêtes avec des distances
+        graph.edge(1, 2).setDistance(2);
+        graph.edge(1, 3).setDistance(40);
+        graph.edge(2, 3).setDistance(10);
+
+        // Tester getMinDist() -> ajouter assert
+        double minDist = getMinDist(graph, 1, 3);
+        assertEquals(12,minDist);
+    }*/
+
+
+    }
+
+
+
+
+
+
+
