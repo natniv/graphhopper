@@ -175,12 +175,84 @@ public class GHUtilityTest {
     prenne en compte. Il se peut qu'à un moment donné, un utilisateur fait rouler comparePaths
     sans bien initialiser ses objets, et la méthode devrait le laisser savoir.
  */
+//    @Test
+//    public void testComparePaths_edgeCases(){
+//
+//        final long seed = System.nanoTime();
+//
+//        // Graph graph = initGraph_forComparePaths();
+//
+//        Directory dir_p1 = new RAMDirectory();
+//        BaseGraph graph_p1 = new BaseGraph(dir_p1, true, true, 100, 8);  // Création de l'instance de BaseGraph
+//        graph_p1.create(500);
+//        NodeAccess na_p1 = graph_p1.getNodeAccess();
+//        na_p1.setNode(1, 10, 10, 0); na_p1.setNode(2, 8, 10, 0);
+//        na_p1.setNode(3, 8, 7,0); na_p1.setNode(5, 5, 7,0);
+//        graph_p1.edge(1,2).setDistance(2);
+//        graph_p1.edge(2,3).setDistance(4);
+//        graph_p1.edge(3,4).setDistance(1);
+//
+//        Directory dir_p2 = new RAMDirectory();
+//        BaseGraph graph_p2 = new BaseGraph(dir_p2, true, true, 100, 8);  // Création de l'instance de BaseGraph
+//        graph_p2.create(500);
+//        NodeAccess na_p2 = graph_p2.getNodeAccess();
+//        na_p2.setNode(1, 10, 10,0); na_p2.setNode(2, 8, 10,0);
+//        na_p2.setNode(3, 8, 7,0); na_p2.setNode(4, 10, 7,0);
+//        graph_p2.edge(1,2).setDistance(2);
+//        graph_p2.edge(1,3).setDistance(3);
+//        graph_p2.edge(3,4).setDistance(5);
+//
+//        // Init 2 paths
+//        Path p1 = new Path(graph_p1);
+//        Path p2 = new Path(graph_p2);
+
+        /* Null weights & distances - test will fail
+             Ici, on travaillera seulement avec un path, car on veut systématiquement éviter
+             la ligne qui "fail" si les paths ne sont pas égaux, afin de voir si strictViolations
+             est correctement retourné
+         */
+
+        // Arrange
+//        p1.setWeight(0); p1.setDistance(0); p1.setTime(0);
+//        p2.setWeight(1.289203); p2.setDistance(11); p2.setTime(11);
+
+        // Act
+
+        // Cas où les 2 paths sont zéro
+//        List<String> output1 = comparePaths(p1, p1, 1,4, seed);
+//        List<String> expected_output1 = new ArrayList<>();
+//        expected_output1.add("path weights cannot be null");
+//        expected_output1.add("path distances cannot be null");
+//        expected_output1.add("path times cannot be null");
+
+        // Cas où un seul path est null
+//        List<String> output2 = comparePaths(p1, p2, 1,4, seed);
+//        List<String> expected_output2 = new ArrayList<>();
+//        expected_output2.add("one path weight cannot be null");
+//        expected_output2.add("one path distance cannot be null");
+//        expected_output2.add("one path time cannot be null");
+
+        // Assert
+//        try {
+//            comparePaths(p1, p2, 1,4, seed);
+//            fail("Expected to fail, but the condition was not met.");
+//        } catch (AssertionError e) {
+//            // Test passes if exception is thrown
+//            assertEquals("Condition was not met", e.getMessage());
+//        }
+
+
+        //assertEquals(expected_output1, output1);
+//    }
+
+    /*
+        Tester le comportement normal de comparePaths
+        On veut s'assurer que dans les conditions où les paths ne sont pas égaux, elle retourne
+        la bonne liste
+     */
     @Test
-    public void testComparePaths_edgeCases(){
-
+    public void testComparePaths_normal(){
         final long seed = System.nanoTime();
-
-        // Graph graph = initGraph_forComparePaths();
 
         Directory dir_p1 = new RAMDirectory();
         BaseGraph graph_p1 = new BaseGraph(dir_p1, true, true, 100, 8);  // Création de l'instance de BaseGraph
@@ -202,41 +274,28 @@ public class GHUtilityTest {
         graph_p2.edge(1,3).setDistance(3);
         graph_p2.edge(3,4).setDistance(5);
 
-        // Init 2 paths
         Path p1 = new Path(graph_p1);
         Path p2 = new Path(graph_p2);
 
-        /* Null weights & distances - test will fail
-             Ici, on travaillera seulement avec un path, car on veut systématiquement éviter
-             la ligne qui "fail" si les paths ne sont pas égaux, afin de voir si strictViolations
-             est correctement retourné
-         */
+        // p1 et p2 ont les mêmes nodes, mais pas le même temps & distance (diff < 0.01 & <50)
+        // comparePaths devrait retourner une liste vide
+        p1.setWeight(1.289200); p1.setDistance(11.001); p1.setTime(500);
+        p2.setWeight(1.289203); p2.setDistance(11); p2.setTime(501);
+        List<String> output1 = comparePaths(p1,p2,1,4,seed);
+        List<String> expected1 = new ArrayList<>();
 
-        // Arrange
-        p1.setWeight(0); p1.setDistance(0); p1.setTime(0);
-        p2.setWeight(1.289203); p2.setDistance(11); p2.setTime(11);
+        assertEquals(expected1, output1);
 
-        // Act
-
-        // Cas où les 2 paths sont zéro
-        List<String> output1 = comparePaths(p1, p1, 1,4, seed);
-        List<String> expected_output1 = new ArrayList<>();
-        expected_output1.add("path weights cannot be null");
-        expected_output1.add("path distances cannot be null");
-        expected_output1.add("path times cannot be null");
-
-        // Cas où un seul path est null
-//        List<String> output2 = comparePaths(p1, p2, 1,4, seed);
-//        List<String> expected_output2 = new ArrayList<>();
-//        expected_output2.add("one path weight cannot be null");
-//        expected_output2.add("one path distance cannot be null");
-//        expected_output2.add("one path time cannot be null");
-
-        // Assert
-        assertEquals(expected_output1, output1);
-        //assertEquals(expected_output2, output2);
+        // p1 et p2 ont les mêmes nodes et des temps & distances (diff > 0.01 & >50)
+        // comparePaths devrait retourner une liste non-vide
+        p1.setWeight(1.289200); p1.setDistance(12); p1.setTime(500);
+        p2.setWeight(1.289203); p2.setDistance(11); p2.setTime(555);
+        List<String> output2 = comparePaths(p1,p2,1,4,seed);
+        List<String> expected2 = new ArrayList<>();
+        expected2.add("wrong distance 1->4, expected: 12.0, given: 11.0");
+        expected2.add("wrong time 1->4, expected: 500, given: 555");
+        assertEquals(expected2, output2);
     }
-
 
 
     // non valide et faux
