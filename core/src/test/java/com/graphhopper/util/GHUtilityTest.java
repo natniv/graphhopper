@@ -66,6 +66,7 @@ public class GHUtilityTest {
 
     //N - 1
     // retourne le node adjacent a un autre node qui partage la meme arete
+    @Test
     public void getNodeAdjTest(){
         Directory dir = new RAMDirectory();
         BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
@@ -84,6 +85,7 @@ public class GHUtilityTest {
 
     //N - 2 - inutile a enlever
     // voir si 2 aretes partagent un noeud
+    @Test
     public void getCommonNodeTest(){
         Directory dir = new RAMDirectory();
         BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
@@ -101,6 +103,7 @@ public class GHUtilityTest {
     }
 
     //N - 3 - inutile a enlever
+    @Test
     public void testGetCommonNodeThrowsIllegalArgumentException() {
         Directory dir = new RAMDirectory();
         BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
@@ -127,6 +130,7 @@ public class GHUtilityTest {
 
     //N - 4
     // mentionner linspi : https://stackoverflow.com/questions/156503/how-do-you-assert-that-a-certain-exception-is-thrown-in-junit-tests#:~:text=Using%20ExpectedException%20you%20could%20call%20N
+    @Test
     public void testExceptionEdgeIterator(){
             Directory dir = new RAMDirectory();
             BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
@@ -146,7 +150,8 @@ public class GHUtilityTest {
 
         }
 
-    public void testGetProblems(){
+    @Test
+        public void testGetProblems(){
         Directory dir = new RAMDirectory();
         BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
         graph.create(500);  // Initialisation avec une taille de stockage de 500
