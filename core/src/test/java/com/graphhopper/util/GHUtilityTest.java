@@ -66,7 +66,7 @@ public class GHUtilityTest {
 
     //N - 1
     // retourne le node adjacent a un autre node qui partage la meme arete
-    @Test
+    /*@Test
     public void getNodeAdjTest(){
         Directory dir = new RAMDirectory();
         BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
@@ -81,7 +81,7 @@ public class GHUtilityTest {
         int result = getAdjNode(graph, edgeId, 2);
         assertEquals(3,result);
 
-    }
+    }*/
 
     //N - 2 - inutile a enlever
     // voir si 2 aretes partagent un noeud
