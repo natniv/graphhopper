@@ -65,6 +65,7 @@ public class GHUtility {
     public static final Logger OSM_WARNING_LOGGER = LoggerFactory.getLogger("com.graphhopper.osm_warnings");
     private static final Logger LOGGER = LoggerFactory.getLogger(GHUtility.class);
 
+
     /**
      * This method could throw an exception if problems like index out of bounds etc
      */
@@ -670,4 +671,5 @@ public class GHUtility {
             throw new IllegalArgumentException("Could not load built-in custom model '" + name + "'");
         }
     }
+
 }

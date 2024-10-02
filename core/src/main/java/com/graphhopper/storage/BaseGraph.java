@@ -96,6 +96,7 @@ public class BaseGraph implements Graph, Closeable {
     public void debugPrint() {
         store.debugPrint();
     }
+    
 
     @Override
     public BaseGraph getBaseGraph() {
