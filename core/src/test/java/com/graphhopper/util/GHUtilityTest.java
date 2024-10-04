@@ -258,8 +258,6 @@ public class GHUtilityTest {
         Path p1 = new Path(graph_p1);
         Path p2 = new Path(graph_p2);
 
-        // p1 et p2 ont les mêmes nodes, mais pas exactement le même temps & distance (diff < 0.01 & <50)
-        // comparePaths devrait retourner une liste vide
         p1.setWeight(1.289200);
         p2.setWeight(1.389203);
 
