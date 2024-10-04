@@ -36,7 +36,9 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.graphhopper.util.DistanceCalcEarth.DIST_EARTH;
 import static com.graphhopper.util.GHUtility.*;
+import static java.lang.Math.sqrt;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -148,7 +150,13 @@ public class GHUtilityTest {
             try {
                 EdgeIteratorState edgeState = graph.edge(2, 3).setDistance(10);
             } catch (IllegalStateException e) {
-                System.out.println("Excepted exception is handled");
+                System.out.println("Expected exception is handled");
+            }
+
+            try {
+                EdgeIteratorState edgeState = graph.edge(4, 4).setDistance(10);
+            } catch (IllegalStateException e){
+                System.out.println("Expected exception is handled");
             }
 
 
@@ -175,104 +183,50 @@ public class GHUtilityTest {
     prenne en compte. Il se peut qu'à un moment donné, un utilisateur fait rouler comparePaths
     sans bien initialiser ses objets, et la méthode devrait le laisser savoir.
  */
-//    @Test
-//    public void testComparePaths_edgeCases(){
-//
-//        final long seed = System.nanoTime();
-//
-//        // Graph graph = initGraph_forComparePaths();
-//
-//        Directory dir_p1 = new RAMDirectory();
-//        BaseGraph graph_p1 = new BaseGraph(dir_p1, true, true, 100, 8);  // Création de l'instance de BaseGraph
-//        graph_p1.create(500);
-//        NodeAccess na_p1 = graph_p1.getNodeAccess();
-//        na_p1.setNode(1, 10, 10, 0); na_p1.setNode(2, 8, 10, 0);
-//        na_p1.setNode(3, 8, 7,0); na_p1.setNode(5, 5, 7,0);
-//        graph_p1.edge(1,2).setDistance(2);
-//        graph_p1.edge(2,3).setDistance(4);
-//        graph_p1.edge(3,4).setDistance(1);
-//
-//        Directory dir_p2 = new RAMDirectory();
-//        BaseGraph graph_p2 = new BaseGraph(dir_p2, true, true, 100, 8);  // Création de l'instance de BaseGraph
-//        graph_p2.create(500);
-//        NodeAccess na_p2 = graph_p2.getNodeAccess();
-//        na_p2.setNode(1, 10, 10,0); na_p2.setNode(2, 8, 10,0);
-//        na_p2.setNode(3, 8, 7,0); na_p2.setNode(4, 10, 7,0);
-//        graph_p2.edge(1,2).setDistance(2);
-//        graph_p2.edge(1,3).setDistance(3);
-//        graph_p2.edge(3,4).setDistance(5);
-//
-//        // Init 2 paths
-//        Path p1 = new Path(graph_p1);
-//        Path p2 = new Path(graph_p2);
-
-        /* Null weights & distances - test will fail
-             Ici, on travaillera seulement avec un path, car on veut systématiquement éviter
-             la ligne qui "fail" si les paths ne sont pas égaux, afin de voir si strictViolations
-             est correctement retourné
-         */
-
-        // Arrange
-//        p1.setWeight(0); p1.setDistance(0); p1.setTime(0);
-//        p2.setWeight(1.289203); p2.setDistance(11); p2.setTime(11);
-
-        // Act
-
-        // Cas où les 2 paths sont zéro
-//        List<String> output1 = comparePaths(p1, p1, 1,4, seed);
-//        List<String> expected_output1 = new ArrayList<>();
-//        expected_output1.add("path weights cannot be null");
-//        expected_output1.add("path distances cannot be null");
-//        expected_output1.add("path times cannot be null");
-
-        // Cas où un seul path est null
-//        List<String> output2 = comparePaths(p1, p2, 1,4, seed);
-//        List<String> expected_output2 = new ArrayList<>();
-//        expected_output2.add("one path weight cannot be null");
-//        expected_output2.add("one path distance cannot be null");
-//        expected_output2.add("one path time cannot be null");
-
-        // Assert
-//        try {
-//            comparePaths(p1, p2, 1,4, seed);
-//            fail("Expected to fail, but the condition was not met.");
-//        } catch (AssertionError e) {
-//            // Test passes if exception is thrown
-//            assertEquals("Condition was not met", e.getMessage());
-//        }
 
 
-        //assertEquals(expected_output1, output1);
-//    }
+    private Graph buildGraph1(){
+        Directory dir_p1 = new RAMDirectory();
+        BaseGraph graph_p1 = new BaseGraph(dir_p1, false, true, 100, 8);  // Création de l'instance de BaseGraph
+        graph_p1.create(500);
+        NodeAccess na_p1 = graph_p1.getNodeAccess();
+        na_p1.setNode(1, 10, 10); na_p1.setNode(2, 8, 10);
+        na_p1.setNode(3, 8, 7); na_p1.setNode(5, 5, 7);
+        graph_p1.edge(1,2).setDistance(2);
+        graph_p1.edge(2,3).setDistance(4);
+        graph_p1.edge(3,4).setDistance(1);
+
+        return graph_p1;
+    }
+
+    public Graph buildGraph2(){
+        Directory dir_p2 = new RAMDirectory();
+        BaseGraph graph_p2 = new BaseGraph(dir_p2, false, true, 100, 8);  // Création de l'instance de BaseGraph
+        graph_p2.create(500);
+        NodeAccess na_p2 = graph_p2.getNodeAccess();
+        na_p2.setNode(1, 10, 10); na_p2.setNode(2, 8, 10);
+        na_p2.setNode(3, 8, 7); na_p2.setNode(4, 10, 7);
+        graph_p2.edge(1,2).setDistance(2);
+        graph_p2.edge(1,3).setDistance(3);
+        graph_p2.edge(3,4).setDistance(5);
+
+        return graph_p2;
+    }
 
     /*
         Tester le comportement normal de comparePaths
         On veut s'assurer que dans les conditions où les paths ne sont pas égaux, elle retourne
-        la bonne liste
+        la bonne liste.
+        Comme la méthode ne teste pas le cas ou les paths sont nuls et elle fail naturellement
+        lorsque les inputs sont incorrects, nous testerons seulement le comportement habituel de
+        la fonction.
      */
     @Test
     public void testComparePaths_normal(){
         final long seed = System.nanoTime();
 
-        Directory dir_p1 = new RAMDirectory();
-        BaseGraph graph_p1 = new BaseGraph(dir_p1, true, true, 100, 8);  // Création de l'instance de BaseGraph
-        graph_p1.create(500);
-        NodeAccess na_p1 = graph_p1.getNodeAccess();
-        na_p1.setNode(1, 10, 10, 0); na_p1.setNode(2, 8, 10, 0);
-        na_p1.setNode(3, 8, 7,0); na_p1.setNode(5, 5, 7,0);
-        graph_p1.edge(1,2).setDistance(2);
-        graph_p1.edge(2,3).setDistance(4);
-        graph_p1.edge(3,4).setDistance(1);
-
-        Directory dir_p2 = new RAMDirectory();
-        BaseGraph graph_p2 = new BaseGraph(dir_p2, true, true, 100, 8);  // Création de l'instance de BaseGraph
-        graph_p2.create(500);
-        NodeAccess na_p2 = graph_p2.getNodeAccess();
-        na_p2.setNode(1, 10, 10,0); na_p2.setNode(2, 8, 10,0);
-        na_p2.setNode(3, 8, 7,0); na_p2.setNode(4, 10, 7,0);
-        graph_p2.edge(1,2).setDistance(2);
-        graph_p2.edge(1,3).setDistance(3);
-        graph_p2.edge(3,4).setDistance(5);
+        Graph graph_p1 = buildGraph1();
+        Graph graph_p2 = buildGraph2();
 
         Path p1 = new Path(graph_p1);
         Path p2 = new Path(graph_p2);
@@ -284,6 +238,7 @@ public class GHUtilityTest {
         List<String> output1 = comparePaths(p1,p2,1,4,seed);
         List<String> expected1 = new ArrayList<>();
 
+        // Devrait retourner une liste vide
         assertEquals(expected1, output1);
 
         // p1 et p2 ont les mêmes nodes et des temps & distances (diff > 0.01 & >50)
@@ -294,30 +249,163 @@ public class GHUtilityTest {
         List<String> expected2 = new ArrayList<>();
         expected2.add("wrong distance 1->4, expected: 12.0, given: 11.0");
         expected2.add("wrong time 1->4, expected: 500, given: 555");
+
+        // Devrait retourner des messages indiquant que l'entrée est invalide
         assertEquals(expected2, output2);
     }
 
+    /*
+        La méthode updateDistancesFor est utilisée partout dans le code, surtout dans le but de
+        tester les fonctionnements de création de chemins alternatifs et d'algorithmes de routage.
+        Elle est donc très pertinente à tester.
+        Nous testerons son comportement dans 3 cas séparés pour améliorer la compréhension
+        des tests et l'interprétation d'erreurs, si elles surviennent.
+        Pour les 2 derniers tests, les valeurs positives ou négatives n'affectent pas les
+        calculs des fonctions appelées dans les méthodes, alors nous ne testerons pas pour des
+        valeurs positives et négatives séparément
+     */
 
-    // non valide et faux
-    /*public void getMinDistTest(){
+    // Tester d'abord le lancement d'une erreur si on donne seulement une coordonnée à modifier
+    @Test
+    public void testUpdateDistancesFor_invalidArgs(){
+        // Arrange (faire un graphe quelconque)
+        Graph g = buildGraph1();
 
-        //Initialisation d'un graphe pour le contexte de tests.
-        Directory dir = new RAMDirectory();
-        BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
-        graph.create(500);  // Initialisation avec une taille de stockage de 500
-
-        // Ajouter des arêtes avec des distances
-        graph.edge(1, 2).setDistance(2);
-        graph.edge(1, 3).setDistance(40);
-        graph.edge(2, 3).setDistance(10);
-
-        // Tester getMinDist() -> ajouter assert
-        double minDist = getMinDist(graph, 1, 3);
-        assertEquals(12,minDist);
-    }*/
-
-
+        // Act & assert via un assertThrows
+        assertThrows(IllegalArgumentException.class, () -> {
+            updateDistancesFor(g, 2, 4000);
+        });
     }
+
+    /* Reprendre la méthode de DistanceCalcEuclidian.java pour calculer les distances entre les
+        points des graphes qui seront crées
+     */
+    private double calcDist(double fromY, double fromX, double toY, double toX) {
+        double dX = fromX - toX;
+        double dY = fromY - toY;
+        return sqrt(dX * dX + dY * dY);
+    }
+
+    // Tester ensuite la modification pour un graphe 2D
+    @Test
+    public void testUpdateDistancesFor_2D(){
+        // Arrange
+        // Créer un graphe 2D quelconque & enregistrer ses valeurs pour les comparer plus tard
+        Directory dir = new RAMDirectory();
+        BaseGraph g = new BaseGraph(dir, false, true, 100, 8);  // Création de l'instance de BaseGraph
+        g.create(500);
+        NodeAccess na = g.getNodeAccess();
+
+        na.setNode(1, 10, 10); na.setNode(2, 8, 10);
+        na.setNode(3, 8, 7); na.setNode(5, 5, 7);
+        g.edge(1,2);
+        g.edge(2,3);
+        g.edge(2,4);
+        g.edge(3,4);
+
+        // Calculer les distances du graphe avec la formule, pour les arêtes associées au noeud 2
+        EdgeIterator iter_og = g.createEdgeExplorer().setBaseNode(2);
+        while (iter_og.next()) {
+            int base = iter_og.getBaseNode();
+            int adj = iter_og.getAdjNode();
+            double dist = calcDist(na.getLon(base), na.getLat(base), na.getLon(adj), na.getLat(adj));
+            iter_og.setDistance(dist);
+        }
+
+        // Enregistrer la position du node 2 & de son edge
+        double lat_og = na.getLat(2);
+        double lon_og = na.getLon(2);
+
+        EdgeIterator edgeIterator = g.createEdgeExplorer().setBaseNode(2);
+
+        // Ajouter les edges & distances (tuple/map?) à une liste
+        List<Double> edge_distances = new ArrayList<>();
+        while (edgeIterator.next()) {
+            double distance = edgeIterator.getDistance();
+            edge_distances.add(distance);
+        }
+
+        // Changer lat & long
+        updateDistancesFor(g, 2, (-4), 11);
+        EdgeIterator edgeIterator2 = g.createEdgeExplorer().setBaseNode(2);
+        double lat_updated = na.getLat(2);
+        double lon_updated = na.getLon(2);
+        List<Double> edge_distances_updated = new ArrayList<>();
+        while (edgeIterator2.next()) {
+            double distance = edgeIterator2.getDistance(); // Get distance of the edge
+            edge_distances_updated.add(distance);
+        }
+
+        assertAll(
+                "Grouped assertions for UpdateDistancesFor on 2D graph",
+                () -> assertNotEquals(lat_og, lat_updated),
+                () -> assertNotEquals(lon_og, lon_updated),
+                () -> assertNotEquals(edge_distances, edge_distances_updated)
+        );
+    }
+
+    // Enfin, tester pour un graphe 3D.
+    @Test
+    public void testUpdateDistancesFor_3D(){
+        // Arrange - Créer un graphe 3D quelconque & enregistrer valeurs
+        Directory dir = new RAMDirectory();
+        BaseGraph g = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
+        g.create(500);
+        NodeAccess na = g.getNodeAccess();
+
+        na.setNode(1, 10, 10, 2); na.setNode(2, 8, 10,3);
+        na.setNode(3, 8, 7,0); na.setNode(5, 5 ,1, 2);
+
+        g.edge(1,2);
+        g.edge(2,3);
+        g.edge(2,4);
+        g.edge(3,4);
+        g.edge(4,5);
+
+        // Calculer les distances du graphe avec la formule, pour les arêtes associées au noeud 2
+        EdgeIterator iter_og = g.createEdgeExplorer().setBaseNode(2);
+        while (iter_og.next()) {
+            int edgeId = iter_og.getEdge();
+            int base = iter_og.getBaseNode();
+            int adj = iter_og.getAdjNode();
+            double dist = calcDist(na.getLon(base), na.getLat(base), na.getLon(adj), na.getLat(adj));
+            iter_og.setDistance(dist);
+        }
+
+        // Enregistrer la position du node 2 & de son edge pour comparer plus tard
+        double lat_og = na.getLat(2);
+        double lon_og = na.getLon(2);
+        double el_og = na.getEle(2);
+
+        // Ajouter les edges & distances (tuple/map?) à une liste
+        EdgeIterator edgeIterator = g.createEdgeExplorer().setBaseNode(2);
+        List<Double> edge_distances = new ArrayList<>();
+        while (edgeIterator.next()) {
+            double distance = edgeIterator.getDistance();
+            edge_distances.add(distance);
+        }
+
+        // Changer lat & lon
+        updateDistancesFor(g, 2, 4, (-11), 5);
+        EdgeIterator edgeIterator2 = g.createEdgeExplorer().setBaseNode(2);
+        double lat_updated = na.getLat(2);
+        double lon_updated = na.getLon(2);
+        double ele_updated = na.getEle(2);
+        List<Double> edge_distances_updated = new ArrayList<>();
+        while (edgeIterator2.next()) {
+            double distance = edgeIterator.getDistance();
+            edge_distances_updated.add(distance);
+        }
+
+        assertAll(
+                "Grouped assertions for UpdateDistancesFor on 3D graph",
+                () -> assertNotEquals(lat_og, lat_updated),
+                () -> assertNotEquals(lon_og, lon_updated),
+                () -> assertNotEquals(el_og, ele_updated),
+                () -> assertNotEquals(edge_distances, edge_distances_updated)
+        );
+    }
+}
 
 
 
