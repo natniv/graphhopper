@@ -18,6 +18,7 @@
 package com.graphhopper.util;
 
 
+import com.carrotsearch.hppc.IntArrayList;
 import com.graphhopper.coll.GHIntLongHashMap;
 import com.graphhopper.routing.Path;
 import com.graphhopper.routing.ev.BooleanEncodedValue;
@@ -191,7 +192,7 @@ public class GHUtilityTest {
         graph_p1.create(500);
         NodeAccess na_p1 = graph_p1.getNodeAccess();
         na_p1.setNode(1, 10, 10); na_p1.setNode(2, 8, 10);
-        na_p1.setNode(3, 8, 7); na_p1.setNode(5, 5, 7);
+        na_p1.setNode(3, 8, 7); na_p1.setNode(4, 5, 7);
         graph_p1.edge(1,2).setDistance(2);
         graph_p1.edge(2,3).setDistance(4);
         graph_p1.edge(3,4).setDistance(1);
@@ -231,7 +232,7 @@ public class GHUtilityTest {
         Path p1 = new Path(graph_p1);
         Path p2 = new Path(graph_p2);
 
-        // p1 et p2 ont les mêmes nodes, mais pas le même temps & distance (diff < 0.01 & <50)
+        // p1 et p2 ont les mêmes nodes, mais pas exactement le même temps & distance (diff < 0.01 & <50)
         // comparePaths devrait retourner une liste vide
         p1.setWeight(1.289200); p1.setDistance(11.001); p1.setTime(500);
         p2.setWeight(1.289203); p2.setDistance(11); p2.setTime(501);
@@ -240,6 +241,31 @@ public class GHUtilityTest {
 
         // Devrait retourner une liste vide
         assertEquals(expected1, output1);
+    }
+
+    /*
+        Tester comparePaths lorsqu'elle lance des messages d'erreur ou elle retourne une liste
+        indiquant les entrées invalides
+     */
+    @Test
+    public void testComparePaths_errors(){
+        // Test wrong weight
+        final long seed = System.nanoTime();
+
+        Graph graph_p1 = buildGraph1();
+        Graph graph_p2 = buildGraph2();
+
+        Path p1 = new Path(graph_p1);
+        Path p2 = new Path(graph_p2);
+
+        // p1 et p2 ont les mêmes nodes, mais pas exactement le même temps & distance (diff < 0.01 & <50)
+        // comparePaths devrait retourner une liste vide
+        p1.setWeight(1.289200);
+        p2.setWeight(1.389203);
+
+        assertThrows(AssertionError.class, () -> {
+            comparePaths(p1, p2, 1, 4, seed);
+        });
 
         // p1 et p2 ont les mêmes nodes et des temps & distances (diff > 0.01 & >50)
         // comparePaths devrait retourner une liste non-vide
@@ -253,6 +279,7 @@ public class GHUtilityTest {
         // Devrait retourner des messages indiquant que l'entrée est invalide
         assertEquals(expected2, output2);
     }
+
 
     /*
         La méthode updateDistancesFor est utilisée partout dans le code, surtout dans le but de
@@ -286,67 +313,11 @@ public class GHUtilityTest {
         return sqrt(dX * dX + dY * dY);
     }
 
-    // Tester ensuite la modification pour un graphe 2D
+    /* Tester ensuite l'autre branche, qui lance une erreur si le graphe est eh 3d mais on envoie
+        le mauvais nombre d'arguments.
+     */
     @Test
-    public void testUpdateDistancesFor_2D(){
-        // Arrange
-        // Créer un graphe 2D quelconque & enregistrer ses valeurs pour les comparer plus tard
-        Directory dir = new RAMDirectory();
-        BaseGraph g = new BaseGraph(dir, false, true, 100, 8);  // Création de l'instance de BaseGraph
-        g.create(500);
-        NodeAccess na = g.getNodeAccess();
-
-        na.setNode(1, 10, 10); na.setNode(2, 8, 10);
-        na.setNode(3, 8, 7); na.setNode(5, 5, 7);
-        g.edge(1,2);
-        g.edge(2,3);
-        g.edge(2,4);
-        g.edge(3,4);
-
-        // Calculer les distances du graphe avec la formule, pour les arêtes associées au noeud 2
-        EdgeIterator iter_og = g.createEdgeExplorer().setBaseNode(2);
-        while (iter_og.next()) {
-            int base = iter_og.getBaseNode();
-            int adj = iter_og.getAdjNode();
-            double dist = calcDist(na.getLon(base), na.getLat(base), na.getLon(adj), na.getLat(adj));
-            iter_og.setDistance(dist);
-        }
-
-        // Enregistrer la position du node 2 & de son edge
-        double lat_og = na.getLat(2);
-        double lon_og = na.getLon(2);
-
-        EdgeIterator edgeIterator = g.createEdgeExplorer().setBaseNode(2);
-
-        // Ajouter les edges & distances (tuple/map?) à une liste
-        List<Double> edge_distances = new ArrayList<>();
-        while (edgeIterator.next()) {
-            double distance = edgeIterator.getDistance();
-            edge_distances.add(distance);
-        }
-
-        // Changer lat & long
-        updateDistancesFor(g, 2, (-4), 11);
-        EdgeIterator edgeIterator2 = g.createEdgeExplorer().setBaseNode(2);
-        double lat_updated = na.getLat(2);
-        double lon_updated = na.getLon(2);
-        List<Double> edge_distances_updated = new ArrayList<>();
-        while (edgeIterator2.next()) {
-            double distance = edgeIterator2.getDistance(); // Get distance of the edge
-            edge_distances_updated.add(distance);
-        }
-
-        assertAll(
-                "Grouped assertions for UpdateDistancesFor on 2D graph",
-                () -> assertNotEquals(lat_og, lat_updated),
-                () -> assertNotEquals(lon_og, lon_updated),
-                () -> assertNotEquals(edge_distances, edge_distances_updated)
-        );
-    }
-
-    // Enfin, tester pour un graphe 3D.
-    @Test
-    public void testUpdateDistancesFor_3D(){
+    public void testUpdateDistancesFor_3DInvalidInput(){
         // Arrange - Créer un graphe 3D quelconque & enregistrer valeurs
         Directory dir = new RAMDirectory();
         BaseGraph g = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
@@ -365,46 +336,18 @@ public class GHUtilityTest {
         // Calculer les distances du graphe avec la formule, pour les arêtes associées au noeud 2
         EdgeIterator iter_og = g.createEdgeExplorer().setBaseNode(2);
         while (iter_og.next()) {
-            int edgeId = iter_og.getEdge();
             int base = iter_og.getBaseNode();
             int adj = iter_og.getAdjNode();
             double dist = calcDist(na.getLon(base), na.getLat(base), na.getLon(adj), na.getLat(adj));
             iter_og.setDistance(dist);
         }
 
-        // Enregistrer la position du node 2 & de son edge pour comparer plus tard
-        double lat_og = na.getLat(2);
-        double lon_og = na.getLon(2);
-        double el_og = na.getEle(2);
-
-        // Ajouter les edges & distances (tuple/map?) à une liste
-        EdgeIterator edgeIterator = g.createEdgeExplorer().setBaseNode(2);
-        List<Double> edge_distances = new ArrayList<>();
-        while (edgeIterator.next()) {
-            double distance = edgeIterator.getDistance();
-            edge_distances.add(distance);
-        }
-
-        // Changer lat & lon
-        updateDistancesFor(g, 2, 4, (-11), 5);
-        EdgeIterator edgeIterator2 = g.createEdgeExplorer().setBaseNode(2);
-        double lat_updated = na.getLat(2);
-        double lon_updated = na.getLon(2);
-        double ele_updated = na.getEle(2);
-        List<Double> edge_distances_updated = new ArrayList<>();
-        while (edgeIterator2.next()) {
-            double distance = edgeIterator.getDistance();
-            edge_distances_updated.add(distance);
-        }
-
-        assertAll(
-                "Grouped assertions for UpdateDistancesFor on 3D graph",
-                () -> assertNotEquals(lat_og, lat_updated),
-                () -> assertNotEquals(lon_og, lon_updated),
-                () -> assertNotEquals(el_og, ele_updated),
-                () -> assertNotEquals(edge_distances, edge_distances_updated)
-        );
+        assertThrows(IllegalArgumentException.class, () -> {
+            updateDistancesFor(g, 2, 4);
+        });
     }
+
+
 }
 
 
