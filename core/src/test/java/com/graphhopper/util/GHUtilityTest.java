@@ -186,6 +186,7 @@ public class GHUtilityTest {
  */
 
 
+    // Construire les graphes qui seront utilisés dans les tests suivants
     private Graph buildGraph1(){
         Directory dir_p1 = new RAMDirectory();
         BaseGraph graph_p1 = new BaseGraph(dir_p1, false, true, 100, 8);  // Création de l'instance de BaseGraph
@@ -194,13 +195,13 @@ public class GHUtilityTest {
         na_p1.setNode(1, 10, 10); na_p1.setNode(2, 8, 10);
         na_p1.setNode(3, 8, 7); na_p1.setNode(4, 5, 7);
         graph_p1.edge(1,2).setDistance(2);
-        graph_p1.edge(2,3).setDistance(4);
+        graph_p1.edge(1,3).setDistance(4);
         graph_p1.edge(3,4).setDistance(1);
 
         return graph_p1;
     }
 
-    public Graph buildGraph2(){
+    private Graph buildGraph2(){
         Directory dir_p2 = new RAMDirectory();
         BaseGraph graph_p2 = new BaseGraph(dir_p2, false, true, 100, 8);  // Création de l'instance de BaseGraph
         graph_p2.create(500);
@@ -210,6 +211,20 @@ public class GHUtilityTest {
         graph_p2.edge(1,2).setDistance(2);
         graph_p2.edge(1,3).setDistance(3);
         graph_p2.edge(3,4).setDistance(5);
+
+        return graph_p2;
+    }
+
+    private Graph buildGraph3(){
+        Directory dir_p2 = new RAMDirectory();
+        BaseGraph graph_p2 = new BaseGraph(dir_p2, false, true, 100, 8);  // Création de l'instance de BaseGraph
+        graph_p2.create(500);
+        NodeAccess na_p2 = graph_p2.getNodeAccess();
+        na_p2.setNode(1, 10, 10); na_p2.setNode(2, 8, 10);
+        na_p2.setNode(3, 8, 7); na_p2.setNode(4, 10, 7);
+        graph_p2.edge(1,2).setDistance(2);
+        graph_p2.edge(2,4).setDistance(3);
+        graph_p2.edge(3,1).setDistance(5);
 
         return graph_p2;
     }
@@ -224,6 +239,7 @@ public class GHUtilityTest {
      */
     @Test
     public void testComparePaths_normal(){
+        // Arrange (construire le graph et les paths)
         final long seed = System.nanoTime();
 
         Graph graph_p1 = buildGraph1();
@@ -237,10 +253,16 @@ public class GHUtilityTest {
         p1.setWeight(1.289200); p1.setDistance(11.001); p1.setTime(500);
         p2.setWeight(1.289203); p2.setDistance(11); p2.setTime(501);
         List<String> output1 = comparePaths(p1,p2,1,4,seed);
-        List<String> expected1 = new ArrayList<>();
+
+        // tester avec les paths contenant des valeurs nulles
+        p1.setWeight(0); p1.setDistance(0); p1.setTime(0);
+        p2.setWeight(0); p2.setDistance(0); p2.setTime(0);
+        List<String> output2 = comparePaths(p1,p2,1,4,seed);
 
         // Devrait retourner une liste vide
-        assertEquals(expected1, output1);
+        List<String> expected = new ArrayList<>();
+        assertEquals(expected, output1);
+        assertEquals(expected, output2);
     }
 
     /*
@@ -249,18 +271,21 @@ public class GHUtilityTest {
      */
     @Test
     public void testComparePaths_errors(){
-        // Test wrong weight
+        // Arrange
         final long seed = System.nanoTime();
 
         Graph graph_p1 = buildGraph1();
         Graph graph_p2 = buildGraph2();
+        Graph graph_p3 = buildGraph3();
 
         Path p1 = new Path(graph_p1);
         Path p2 = new Path(graph_p2);
+        Path p3 = new Path(graph_p3);
 
+        // Tester pour des poids drastiquement différents
+        // ComparePaths devrait lancer un AssertionError
         p1.setWeight(1.289200);
         p2.setWeight(1.389203);
-
         assertThrows(AssertionError.class, () -> {
             comparePaths(p1, p2, 1, 4, seed);
         });
@@ -273,11 +298,10 @@ public class GHUtilityTest {
         List<String> expected2 = new ArrayList<>();
         expected2.add("wrong distance 1->4, expected: 12.0, given: 11.0");
         expected2.add("wrong time 1->4, expected: 500, given: 555");
-
         // Devrait retourner des messages indiquant que l'entrée est invalide
         assertEquals(expected2, output2);
-    }
 
+    }
 
     /*
         La méthode updateDistancesFor est utilisée partout dans le code, surtout dans le but de
@@ -297,9 +321,15 @@ public class GHUtilityTest {
         Graph g = buildGraph1();
 
         // Act & assert via un assertThrows
-        assertThrows(IllegalArgumentException.class, () -> {
+        IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class, () -> {
             updateDistancesFor(g, 2, 4000);
         });
+        assertEquals("illegal number of arguments 1", ex1.getMessage());
+
+        IllegalArgumentException ex2 = assertThrows(IllegalArgumentException.class, () -> {
+            updateDistancesFor(g, 2);
+        });
+        assertEquals("illegal number of arguments 0", ex2.getMessage());
     }
 
     /* Reprendre la méthode de DistanceCalcEuclidian.java pour calculer les distances entre les
@@ -311,7 +341,7 @@ public class GHUtilityTest {
         return sqrt(dX * dX + dY * dY);
     }
 
-    /* Tester ensuite l'autre branche, qui lance une erreur si le graphe est eh 3d mais on envoie
+    /* Tester ensuite l'autre branche, qui lance une erreur si le graphe est en 3d mais on envoie
         le mauvais nombre d'arguments.
      */
     @Test
@@ -340,9 +370,12 @@ public class GHUtilityTest {
             iter_og.setDistance(dist);
         }
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            updateDistancesFor(g, 2, 4);
+        // Act & assert
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            updateDistancesFor(g, 2, 4, 2);
         });
+        assertEquals("graph requires elevation", ex.getMessage());
+
     }
 
 
