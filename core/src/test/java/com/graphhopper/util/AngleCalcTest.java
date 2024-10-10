@@ -110,7 +110,7 @@ public class AngleCalcTest {
     }
 
     @Test
-    //ajout 2 test pour couvrir toutes les branches de test 1 if et 1 exception handler
+    //ajout 2 test pour couvrir toutes les branches de test if et 1 exception handler
     public void testConvertAzimuth2xAxisAngle() {
         assertEquals(Math.PI / 2, AC.convertAzimuth2xaxisAngle(0), 1E-6);
         assertEquals(Math.PI / 2, Math.abs(AC.convertAzimuth2xaxisAngle(360)), 1E-6);

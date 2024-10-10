@@ -71,59 +71,53 @@ public class GHUtilityTest {
         assertTrue(map1.containsKey(0));
     }
 
-    //N - 1
-    // retourne le node adjacent a un autre node qui partage la meme arete
-    /*@Test
-    public void getNodeAdjTest(){
-        Directory dir = new RAMDirectory();
-        BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
-        graph.create(500);  // Initialisation avec une taille de stockage de 500
 
-        // Ajouter des arêtes avec des distances
-        graph.edge(1, 2).setDistance(2);
-        graph.edge(1, 3).setDistance(40);
-        EdgeIteratorState edgeState = graph.edge(2, 3).setDistance(10);
 
-        int edgeId = edgeState.getEdge();
-        int result = getAdjNode(graph, edgeId, 2);
-        assertEquals(3,result);
-
-    }*/
-
-    //N - 2 - inutile a enlever
-    // voir si 2 aretes partagent un noeud
+    // Methode qui test getCommonNode() et qui attend un comportement normal et juste
     @Test
     public void getCommonNodeTest(){
+        // création et initialisation du graphe avec l'implementation baseGraph
         Directory dir = new RAMDirectory();
         BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
         graph.create(500);  // Initialisation avec une taille de stockage de 500
 
-        // Ajouter des arêtes avec des distances
+        // Ajouter des arêtes avec des distances dans le graphe cree
         graph.edge(1, 2).setDistance(2);
         EdgeIteratorState edgeState2 = graph.edge(1, 3).setDistance(40);
         EdgeIteratorState edgeState = graph.edge(2, 3).setDistance(10);
 
+        // recuperer les id des edges dans le graphe
         int edgeId = edgeState.getEdge();
         int edgeId2 = edgeState2.getEdge();
+
+        // appel de la méthode testee
         int result = getCommonNode(graph, edgeId, edgeId2);
         assertEquals(3,result);
+        graph.close();
     }
 
-    //N - 3 - inutile a enlever
+
+    // Methode de test qui teste GetCommonNode() avec une exception attendue
     @Test
     public void testGetCommonNodeThrowsIllegalArgumentException() {
+        // création et initialisation du graphe avec l'implementation baseGraph
         Directory dir = new RAMDirectory();
         BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
         graph.create(500);  // Initialisation avec une taille de stockage de 500
 
-        // Ajouter des arêtes avec des distances
+        // Ajouter des arêtes avec des distances dans le graphe cree
         graph.edge(1, 2).setDistance(2);
         EdgeIteratorState edgeState2 = graph.edge(1, 3).setDistance(40);
         EdgeIteratorState edgeState = graph.edge(2, 3).setDistance(10);
 
+        // recuperer les id des edges dans le graphe
         int edgeId = edgeState.getEdge();
         int edgeId2 = edgeState2.getEdge();
 
+        // appel de la méthode testee avec la structure de try catch pour verifier le comportement
+        // en cas d'exception attendue. Structure de test pour verifier la gestion des exceptions sur
+        //https://stackoverflow.com/questions/156503/how-do-you-assert-that-a-certain-exception-is-thrown-in-junit-tests#:~:text=Using%20ExpectedException%20you%20could%20call%20N
+        // Plus de détails sur le rapport pour la source.
         try {
             int result = getCommonNode(graph, edgeId, edgeId);
             fail("expected exception was not occured.");
@@ -133,35 +127,9 @@ public class GHUtilityTest {
             //so we need not handle it.
             System.out.println("Excepted exception is handled");
         }
+        graph.close();
     }
 
-    //N - 4
-    // mentionner linspi : https://stackoverflow.com/questions/156503/how-do-you-assert-that-a-certain-exception-is-thrown-in-junit-tests#:~:text=Using%20ExpectedException%20you%20could%20call%20N
-    @Test
-    public void testExceptionEdgeIterator(){
-            Directory dir = new RAMDirectory();
-            BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
-            graph.create(500);  // Initialisation avec une taille de stockage de 500
-
-            // Ajouter des arêtes avec des distances
-            graph.edge(1, 2).setDistance(2);
-            graph.edge(1, 3).setDistance(40);
-            graph.freeze();
-
-            try {
-                EdgeIteratorState edgeState = graph.edge(2, 3).setDistance(10);
-            } catch (IllegalStateException e) {
-                System.out.println("Expected exception is handled");
-            }
-
-            try {
-                EdgeIteratorState edgeState = graph.edge(4, 4).setDistance(10);
-            } catch (IllegalStateException e){
-                System.out.println("Expected exception is handled");
-            }
-
-
-        }
 
     @Test
         public void testGetProblems(){
@@ -172,8 +140,10 @@ public class GHUtilityTest {
         try {
             System.out.println(getProblems(graph));
         } catch (IllegalStateException e) {
+            System.out.println(getProblems(graph));
             System.out.println("Excepted exception is handled");
         }
+        graph.close();
     }
 
     /*

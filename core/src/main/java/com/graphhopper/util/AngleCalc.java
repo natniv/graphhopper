@@ -118,8 +118,9 @@ public class AngleCalc {
         return Math.toDegrees(Helper.round4(orientation)) % 360;
     }
 
-    public String azimuth2compassPoint(double azimuth) {
 
+    // Methode qui convertit un angle en point cardinal
+    public String azimuth2compassPoint(double azimuth) {
         String cp;
         double slice = 360.0 / 16;
         if (azimuth < slice) {

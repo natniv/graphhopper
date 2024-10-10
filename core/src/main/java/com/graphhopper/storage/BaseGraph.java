@@ -96,7 +96,7 @@ public class BaseGraph implements Graph, Closeable {
     public void debugPrint() {
         store.debugPrint();
     }
-    
+
 
     @Override
     public BaseGraph getBaseGraph() {
@@ -286,6 +286,8 @@ public class BaseGraph implements Graph, Closeable {
      * Create edge between nodes a and b
      *
      * @return EdgeIteratorState of newly created edge
+     * Message d'excepton retourne si le graphe en question est frozen ou si l'arete qui veut etre
+     * créée est un noeud
      */
     @Override
     public EdgeIteratorState edge(int nodeA, int nodeB) {

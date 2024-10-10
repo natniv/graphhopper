@@ -407,4 +407,32 @@ public class BaseGraphTest extends AbstractGraphStorageTester {
         assertThrows(IllegalArgumentException.class, () -> ne.setGeoRef(0, 1L << 39));
         graph.close();
     }
+
+    //Methode qui teste la méthode edge : création de noeuds dans le graphe: comportement attendu :
+    //premier normal sans erreur, deuxieme retourne une exception message.
+    @Test
+    public void testExceptionEdge(){
+        Directory dir = new RAMDirectory();
+        BaseGraph graph = new BaseGraph(dir, true, true, 100, 8);  // Création de l'instance de BaseGraph
+        graph.create(500);  // Initialisation avec une taille de stockage de 500
+
+        // Ajouter des arêtes avec des distances
+        graph.edge(1, 2).setDistance(2);
+        graph.edge(1, 3).setDistance(40);
+        graph.freeze();
+
+        try {
+            EdgeIteratorState edgeState = graph.edge(2, 3).setDistance(10);
+        } catch (IllegalStateException e) {
+            System.out.println("Expected exception is handled");
+        }
+
+        try {
+            EdgeIteratorState edgeState = graph.edge(4, 4).setDistance(10);
+        } catch (IllegalStateException e){
+            System.out.println("Expected exception is handled");
+        }
+        graph.close();
+
+    }
 }
