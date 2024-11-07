@@ -15,7 +15,7 @@ jobs:
           distribution: temurin
       - name: Build and Test
         run: |
-          export MAVEN_OPTS="-XX:+PrintFlagsFinal" 
+          export MAVEN_OPTS="-XX:+PrintFlagsFinal -Xlog:gc* -Xlog:heap+usage=info -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/runner/work/heapdump.hprof" 
           xvfb-run mvn -B verify -Djavafx.platform=linux jacoco:report -Pcoverage
           unset MAVEN_OPTS
       - name: Cache Maven artifacts
@@ -42,7 +42,7 @@ jobs:
       - name: Build ${{ matrix.java-version }}
         run: mvn -B clean test
 
-      
+
 
       
 
