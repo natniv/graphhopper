@@ -42,18 +42,20 @@ jobs:
       - name: Build ${{ matrix.java-version }}
         run: mvn -B clean test
 
-      # creer le heap dump
+
+      # Créer le heap dump
       - name: Capture Heap Dump
         run: |
           sleep 10  
           app_pid=$(cat app_pid.txt)
           jcmd $app_pid GC.heap_dump /home/runner/work/heapdump.hprof
 
-      # Télécharger le Heap Dump comme artifact et ensuite le sauvegarder lcoalement
+      # Télécharger le Heap Dump comme artifact et ensuite le sauvegarder localement
       - name: Upload Heap Dump
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: heap_dump
           path: /home/runner/work/heapdump.hprof
+
 
 
