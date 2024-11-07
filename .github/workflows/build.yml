@@ -13,7 +13,7 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
           distribution: temurin
-      - name: Build and Test
+      - name: Build and Test #modifie
         run: |
           export MAVEN_OPTS="-XX:+PrintFlagsFinal -Xlog:gc* -Xlog:heap+usage=info -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/runner/work/heapdump.hprof" 
           xvfb-run mvn -B verify -Djavafx.platform=linux jacoco:report -Pcoverage
