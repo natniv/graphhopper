@@ -22,6 +22,11 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      - name: Build and Test
+        run: |
+          export MAVEN_OPTS="-XX:+PrintFlagsFinal" 
+          xvfb-run mvn -B verify -Djavafx.platform=linux jacoco:report -Pcoverage
+          unset MAVEN_OPTS
       - name: Cache node
         uses: actions/cache@v3
         with:
