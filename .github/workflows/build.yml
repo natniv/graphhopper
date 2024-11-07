@@ -42,20 +42,13 @@ jobs:
       - name: Build ${{ matrix.java-version }}
         run: mvn -B clean test
 
-
-      # Créer le heap dump
-      - name: Capture Heap Dump
+      - name: Run Java application with Heap Dump on OOM
         run: |
-          sleep 10  
-          app_pid=$(cat app_pid.txt)
-          jcmd $app_pid GC.heap_dump /home/runner/work/heapdump.hprof
+          java -Xmx512m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/runner/work/heapdump.hprof -jar yourapp.jar
 
-      # Télécharger le Heap Dump comme artifact et ensuite le sauvegarder localement
-      - name: Upload Heap Dump
-        uses: actions/upload-artifact@v4
-        with:
-          name: heap_dump
-          path: /home/runner/work/heapdump.hprof
+
+
+      
 
 
 
