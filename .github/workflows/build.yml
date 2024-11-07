@@ -42,11 +42,7 @@ jobs:
       - name: Build ${{ matrix.java-version }}
         run: mvn -B clean test
 
-      - name: Run Java application with Heap Dump on OOM
-        run: |
-          java -Xmx512m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/runner/work/heapdump.hprof -jar yourapp.jar
-
-
+      
 
       
 
