@@ -15,7 +15,7 @@ jobs:
           distribution: temurin
       - name: Print flags #modifie & get JIT compiler info 
         run: |
-          export MAVEN_OPTS="-XX:+PrintFlagsFinal -XX:+PrintCompilation"
+          export MAVEN_OPTS="-XX:+PrintFlagsFinal -XX:+CITime"
           xvfb-run mvn -B verify -Djavafx.platform=linux jacoco:report -Pcoverage
           unset MAVEN_OPTS
       - name: Cache Maven artifacts
