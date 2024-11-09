@@ -13,9 +13,9 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
           distribution: temurin
-      - name: Build and Test #modifie
+      - name: Print flags #modifie & get JIT compiler info 
         run: |
-          export MAVEN_OPTS="-XX:+PrintFlagsFinal -Xlog:gc* -Xlog:heap+usage=info -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/runner/work/heapdump.hprof" 
+          export MAVEN_OPTS="-XX:+PrintFlagsFinal -XX:+PrintCompilation"
           xvfb-run mvn -B verify -Djavafx.platform=linux jacoco:report -Pcoverage
           unset MAVEN_OPTS
       - name: Cache Maven artifacts
