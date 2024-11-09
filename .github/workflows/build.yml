@@ -15,7 +15,7 @@ jobs:
           distribution: temurin
       - name: Print flags #modifie & get JIT compiler info 
         run: |
-          export MAVEN_OPTS="-XX:CompileThreshold=2500 -XX:+CITime"
+          export MAVEN_OPTS="-XX:+PrintInlining"
           xvfb-run mvn -B verify -Djavafx.platform=linux jacoco:report -Pcoverage 2> citime_output.log
           unset MAVEN_OPTS
           cat citime_output.log
@@ -40,8 +40,8 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/pom.xml', '**/package.json') }}
           restore-keys: |
             ${{ runner.os}}-node_modules-
-      - name: Build ${{ matrix.java-version }}
-        run: mvn -B clean test
+      # - name: Build ${{ matrix.java-version }}
+      #   run: mvn -B clean test
 
 
 
