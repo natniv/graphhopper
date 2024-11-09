@@ -16,8 +16,9 @@ jobs:
       - name: Print flags #modifie & get JIT compiler info 
         run: |
           export MAVEN_OPTS="-XX:+PrintFlagsFinal -XX:+CITime"
-          xvfb-run mvn -B verify -Djavafx.platform=linux jacoco:report -Pcoverage
+          xvfb-run mvn -B verify -Djavafx.platform=linux jacoco:report -Pcoverage 2> citime_output.log
           unset MAVEN_OPTS
+          cat citime_output.log
       - name: Cache Maven artifacts
         uses: actions/cache@v3
         with:
