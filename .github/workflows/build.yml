@@ -15,7 +15,7 @@ jobs:
           distribution: temurin
       - name: Print flags #modifie & get JIT compiler info 
         run: |
-          export MAVEN_OPTS="-XX:+PrintCodeCache"
+          export MAVEN_OPTS="-XX:FreqInlineSize=360 -XX:+CITime"
           xvfb-run mvn -B verify -Djavafx.platform=linux jacoco:report -Pcoverage 2> citime_output.log
           unset MAVEN_OPTS
           cat citime_output.log
